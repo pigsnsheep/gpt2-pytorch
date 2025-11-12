@@ -3,6 +3,7 @@ import torch.nn.functional as F
 from model import Transformer
 from data import get_dataloaders
 from tqdm import tqdm
+from matplotlib import pyplot as plt
 
 # Hyperparameters
 block_size = 64
@@ -25,6 +26,8 @@ train_loader, test_loader, vocab_size, stoi, itos = get_dataloaders(
 model = Transformer(vocab_size=vocab_size, block_size=block_size, embed_dim=embed_dim, n_layer=n_layer)
 optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=0.1, betas=(0.9, 0.95))
 
+losses = []
+
 # Training loop, one epoch only
 model.train()
 for epoch_num, (x, y) in enumerate(tqdm(train_loader)):
@@ -36,10 +39,19 @@ for epoch_num, (x, y) in enumerate(tqdm(train_loader)):
   logits = model(x)
   loss = F.cross_entropy(logits.view(-1, vocab_size), y.view(-1))
 
+  losses.append(loss.item())
+
+
+
+
   # Backward pass
   optimizer.zero_grad()
   loss.backward()
   optimizer.step()
 
 torch.save(model, "model.pt")
+plt.plot(losses)
+plt.xlabel("Epoch")
+plt.ylabel("Loss")
+plt.savefig("loss_curve.png")
 

@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn 
 import torch.nn.functional as F
+import math
 
 class LayerNorm(nn.Module): 
   def __init__(self, embed_dim): 
@@ -26,9 +27,18 @@ class SelfAttention(nn.Module):
     res = self.map_qkv(x)    
     q, k, v = res.split(self.embed_dim, dim=2)
 
-    
+    H = self.n_head
+    head_dim = C // H
 
-    
+    q = q.view(B, T, H, head_dim).transpose(1,2)
+    k = k.view(B, T, H, head_dim).transpose(1,2)
+    v = v.view(B, T, H, head_dim).transpose(1,2)
+
+    attn_scores = (q @ k.transpose(-2, -1)) / math.sqrt(head_dim)
+
+    masked_scores = attn_scores.masked_fill(self.mask[:, :, :T, :T] == 0, float('-inf'))
+
+    y = F.softmax(masked_scores, dim = -1) @ v
 
 
     y = torch.randn_like(x)
