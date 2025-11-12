@@ -23,7 +23,14 @@ class SelfAttention(nn.Module):
 
   def forward(self, x): 
     B, T, C = x.size() # batch size, sequence length, embedding dimensionality (embed_dim)
-    ...
+    res = self.map_qkv(x)    
+    q, k, v = res.split(self.embed_dim, dim=2)
+
+    
+
+    
+
+
     y = torch.randn_like(x)
     assert y.shape == (B, T, C)
     return y
